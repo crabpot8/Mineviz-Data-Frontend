@@ -13,7 +13,7 @@ public class Cache {
 	 * 
 	 * @param bicluster_id
 	 */
-	public static Bicluster getBicluster(int bicluster_id) {
+	protected static Bicluster getBicluster(int bicluster_id) {
 		Bicluster bc = mCache.get(new Integer(bicluster_id));
 		if (bc == null) {
 			bc = new Bicluster(bicluster_id);

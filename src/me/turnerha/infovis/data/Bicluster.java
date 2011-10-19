@@ -14,8 +14,8 @@ public class Bicluster {
 	private int bicluster_id;
 	private Dimension[] mDimension; // delete-able
 	private String externalDbName; // delete-able
-	private ArrayList<Integer> chainedBiclusters; // delete-able
-	private ArrayList<Integer> overlappedBiclusters; // delete-able
+
+	private ArrayList<Link> links; // delete-able
 
 	@Override
 	public String toString() {
@@ -26,8 +26,7 @@ public class Bicluster {
 		else
 			sb.append(mDimension[0]).append(',').append(mDimension[1]).append(
 					'}');
-		sb.append(",externalDbName={").append(externalDbName).append(
-				"},chainedBiclusters={").append(chainedBiclusters).append("}}");
+		sb.append(",externalDbName={").append(externalDbName).append("}}");
 		return sb.toString();
 	}
 
@@ -35,124 +34,85 @@ public class Bicluster {
 		this.bicluster_id = bicluster_id;
 	}
 
+	public static Bicluster getBiclusterForId(int id) {
+		return Cache.getBicluster(id);
+	}
+
 	public int getBiclusterId() {
 		return bicluster_id;
 	}
 
-	public List<Integer> getChainedBiclusters() {
-		if (chainedBiclusters != null)
-			return chainedBiclusters;
+	public List<Link> getAllLinks() {
+		if (links != null)
+			return links;
 
-		// Grab all chaining_link_ids that target us
+		// Grab all chaining_link_ids that target this bicluster
 		ResultSet rs = DBUtils
 				.executeQuery("SELECT id FROM symfony.chaining_link WHERE target_bicluster_id="
-						+ bicluster_id);
+						+ bicluster_id
+						+ " AND chaining_id="
+						+ DBUtils.CHAINING_ID);
 		StringBuffer in = new StringBuffer();
 		try {
-			while (rs.next()) {
+			while (rs.next())
 				in.append(rs.getInt(1)).append(',');
-			}
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		in.setLength(in.length() - 1);
 
-		// Grab the destinations of all of them
+		// Get the destination_bicluster_ids for each of those chaining_link_ids
 		rs = DBUtils
-				.executeQuery("SELECT destination_bicluster_id FROM symfony.chaining_link_destination WHERE chaining_link_id IN ("
+				.executeQuery("SELECT chaining_link_id, destination_bicluster_id FROM symfony.chaining_link_destination WHERE chaining_link_id IN ("
 						+ in.toString() + ")");
-		chainedBiclusters = new ArrayList<Integer>();
+
+		links = new ArrayList<Link>();
 		try {
-			while (rs.next()) {
-				Bicluster other = Cache.getBicluster(rs.getInt(1));
-				if (false == isOverlappedBicluster(other))
-					chainedBiclusters.add(other.getBiclusterId());
-			}
+			while (rs.next())
+				links.add(new Link(bicluster_id, rs.getInt(2), rs.getInt(1)));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-		return chainedBiclusters;
+		return links;
+	}
+
+	public List<Integer> getConnectedBiclusters() {
+		ArrayList<Integer> connected = new ArrayList<Integer>();
+		for (Link l : getAllLinks())
+			if (l.isConnectionLink())
+				connected.add(l.getDestination().bicluster_id);
+
+		return connected;
 	}
 
 	public List<Integer> getOverlappedBiclusters() {
-		if (overlappedBiclusters != null)
-			return overlappedBiclusters;
+		ArrayList<Integer> overlapped = new ArrayList<Integer>();
+		for (Link l : getAllLinks())
+			if (l.isOverlapLink())
+				overlapped.add(l.getDestination().bicluster_id);
 
-		// Grab all chaining_link_ids that target us
-		ResultSet rs = DBUtils
-				.executeQuery("SELECT id FROM symfony.chaining_link WHERE target_bicluster_id="
-						+ bicluster_id);
-		StringBuffer in = new StringBuffer();
-		try {
-			while (rs.next()) {
-				in.append(rs.getInt(1)).append(',');
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		in.setLength(in.length() - 1);
-
-		// Grab the destinations of all of them
-		rs = DBUtils
-				.executeQuery("SELECT destination_bicluster_id FROM symfony.chaining_link_destination WHERE chaining_link_id IN ("
-						+ in.toString() + ")");
-		overlappedBiclusters = new ArrayList<Integer>();
-		try {
-			while (rs.next()) {
-				Bicluster other = Cache.getBicluster(rs.getInt(1));
-				if (isOverlappedBicluster(other))
-					overlappedBiclusters.add(other.getBiclusterId());
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		return overlappedBiclusters;
-	}
-
-	public boolean isOverlappedBicluster(Bicluster other) {
-		Dimension[] mDim = getDimensions();
-		Dimension[] oDim = other.getDimensions();
-
-		// date x location & date x location
-		if (mDim[0].getName().equals(oDim[0].getName()))
-			if (mDim[1].getName().equals(oDim[1].getName()))
-				return true;
-
-		// date x location & location x date
-		if (mDim[0].getName().equals(oDim[1].getName()))
-			if (mDim[1].getName().equals(oDim[0].getName()))
-				return true;
-		return false;
+		return overlapped;
 	}
 
 	public static List<Bicluster> getAllBiclusters() {
 		return DBUtils.listBiclusters();
 	}
 
-	public String findCommonDimension(Bicluster other) {
-		Dimension[] mDim = getDimensions();
-		Dimension[] oDim = other.getDimensions();
+	public Dimension getRow() {
+		return getDimensions()[0];
+	}
 
-		if (mDim[0].getName().equals(oDim[0].getName()))
-			return mDim[0].getName();
-		else if (mDim[0].getName().equals(oDim[1].getName()))
-			return mDim[0].getName();
-		else if (mDim[1].getName().equals(oDim[0].getName()))
-			return mDim[1].getName();
-		else if (mDim[1].getName().equals(oDim[1].getName()))
-			return mDim[1].getName();
-
-		throw new IllegalArgumentException("Biclusters are unrelated: "
-				+ this.toString() + "\nAND\n" + other.toString());
+	public Dimension getCol() {
+		return getDimensions()[1];
 	}
 
 	/**
 	 * 
 	 * @return return[0] is for rows, and return[1] is for columns
 	 */
-	public Dimension[] getDimensions() {
+	private Dimension[] getDimensions() {
 		if (mDimension != null)
 			return mDimension;
 
@@ -169,20 +129,16 @@ public class Bicluster {
 			// Convention is that table a is for rows, and b is for columns
 			mDimension[0] = new Dimension(result.getString("table_a"), result
 					.getString("table_a_id_field"), result
-					.getString("table_a_description_field"), true);
+					.getString("table_a_description_field"), true, bicluster_id);
 			mDimension[1] = new Dimension(result.getString("table_b"), result
 					.getString("table_b_id_field"), result
-					.getString("table_b_description_field"), true);
+					.getString("table_b_description_field"), false,
+					bicluster_id);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
 		return mDimension;
-	}
-
-	public String[] getDimensionNames() {
-		Dimension[] dims = getDimensions();
-		return new String[] { dims[0].getName(), dims[1].getName() };
 	}
 
 	protected String getExternalDatabase() {
@@ -203,97 +159,4 @@ public class Bicluster {
 						+ project_id);
 		return externalDbName;
 	}
-
-	public ArrayList<String> getValuesForDimension(String dimension) {
-		Dimension target = null;
-		Dimension[] dims = getDimensions();
-
-		if (dims[0].getName().equals(dimension))
-			target = dims[0];
-		else if (dims[1].getName().equals(dimension))
-			target = dims[1];
-		else
-			throw new IllegalArgumentException("Unknown dimension " + dimension);
-
-		return target.getValues();
-	}
-
-	public class Dimension {
-		private String nameAndTable;
-		private String idField;
-		private String valueField;
-		private boolean isRow;
-		private ArrayList<String> values; // delete-able
-
-		// idField == the field in the table for this dimension
-		// isRow == when looking for values, are we in the "row" or the "column"
-		// table
-		public Dimension(String name, String idField, String valueField,
-				boolean isRow) {
-			this.nameAndTable = name;
-			this.idField = idField;
-			this.valueField = valueField;
-			this.isRow = isRow;
-		}
-
-		public String getName() {
-			return nameAndTable;
-		}
-
-		@Override
-		public String toString() {
-			StringBuffer sb = new StringBuffer("{nameAndTable=");
-			sb.append(nameAndTable).append(',').append("idField=").append(
-					idField).append(',').append("valueField=").append(
-					valueField).append(',').append("isRow=").append(isRow)
-					.append(',').append("values=").append(values).append('}');
-			return sb.toString();
-		}
-
-		public ArrayList<String> getValues() {
-			if (values != null)
-				return values;
-
-			String exDB = getExternalDatabase();
-			String idTable = isRow ? "mining_bi_cluster_row"
-					: "mining_bi_cluster_col";
-			String selection = isRow ? "row_id" : "col_id";
-
-			// Grab the row ID's of all our values from mining_bi_cluster_row
-			ResultSet rs = DBUtils.executeQuery("SELECT " + selection
-					+ " FROM symfony." + idTable + " WHERE bicluser_id="
-					+ bicluster_id);
-
-			StringBuffer idINlist = new StringBuffer();
-			try {
-				while (rs.next()) {
-					idINlist.append(rs.getString(1));
-					idINlist.append(',');
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			idINlist.setLength(idINlist.length() - 1);
-
-			// Grab the values from the original table
-			String query = "SELECT " + valueField + " FROM " + exDB + "."
-					+ nameAndTable + " WHERE " + idField + " IN ("
-					+ idINlist.toString() + ")";
-
-			rs = DBUtils.executeQuery(query);
-			ArrayList<String> result = new ArrayList<String>(
-					idINlist.length() / 2 + 10);
-			try {
-				while (rs.next())
-					result.add(rs.getString(1));
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-
-			values = result;
-
-			return values;
-		}
-	}
-
 }

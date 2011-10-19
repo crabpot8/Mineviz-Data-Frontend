@@ -13,9 +13,9 @@ public class DBUtils {
 	private static final boolean DEBUG = false;
 	private static String dbUrl = "jdbc:mysql://localhost/?user=root&password=";
 	private static Connection conn = null;
-	private static int MINING_ID = 2; // ID from symfony.mining that we care
-
-	// about
+	public static int MINING_ID = 2; // ID from symfony.mining that we care for
+	public static int CHAINING_ID = 2; // ID from symfony.chaining that we care
+										// for
 
 	private static void ensureConnection() {
 		try {
@@ -76,6 +76,8 @@ public class DBUtils {
 			e.printStackTrace();
 		}
 
+		if (DEBUG)
+			System.err.println("Returning " + result);
 		return result;
 	}
 
@@ -93,6 +95,8 @@ public class DBUtils {
 			e.printStackTrace();
 		}
 
+		if (DEBUG)
+			System.err.println("Returning " + result);
 		return result;
 	}
 

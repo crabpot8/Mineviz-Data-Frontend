@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.List;
 
 import me.turnerha.infovis.data.Bicluster;
-import me.turnerha.infovis.data.Cache;
-import me.turnerha.infovis.data.Bicluster.Dimension;
+import me.turnerha.infovis.data.Dimension;
+import me.turnerha.infovis.data.Link;
 
 /**
  * Takes the current Database and spits it out in the MineVis CSV format
@@ -28,8 +28,7 @@ public class DBtoCSV {
 			List<Bicluster> clusters = Bicluster.getAllBiclusters();
 			for (Bicluster cluster : clusters) {
 				writer.write(cluster.getBiclusterId() + ",");
-				Dimension[] dims = cluster.getDimensions();
-				Dimension row = dims[0], col = dims[1];
+				Dimension row = cluster.getRow(), col = cluster.getCol();
 				writer.write(row.getName() + ",\"");
 				for (String value : row.getValues())
 					writer.write(value + ",");
@@ -54,10 +53,19 @@ public class DBtoCSV {
 					+ "Columns\n");
 
 			for (Bicluster cluster : clusters) {
-				Dimension[] dims = cluster.getDimensions();
-				Dimension row = dims[0], col = dims[1];
 
-				for (Integer chained : cluster.getChainedBiclusters()) {
+				Dimension row = cluster.getRow(), col = cluster.getCol();
+
+				System.out.println("I am " + cluster.getBiclusterId() + ": "
+						+ row.getName() + " <> " + col.getName());
+
+				for (Link link : cluster.getAllLinks()) {
+					//if (link.isOverlapLink())
+					//	continue;
+
+					if (link.getTarget() != cluster)
+						System.err.println("WTF");
+
 					writer.write(",,"); // Ignore Id, Type
 
 					// Source ID
@@ -72,12 +80,46 @@ public class DBtoCSV {
 						writer.write(val + ",");
 					writer.write("\",");
 
-					Bicluster chd = Cache.getBicluster(chained);
-					Dimension[] dims2 = chd.getDimensions();
-					row = dims2[0];
-					col = dims2[1];
+					Bicluster chd = link.getDestination();
+					row = chd.getRow();
+					col = chd.getCol();
+
+					System.out.println("\tConnected with "
+							+ chd.getBiclusterId() + ": " + row.getName()
+							+ " <> " + col.getName() + " by " + link.getType());
+
+					List<String> clusterRow = cluster.getRow().getValues();
+					List<String> clusterCol = cluster.getCol().getValues();
+					List<String> rowValues = row.getValues();
+					List<String> colValues = col.getValues();
+					int max = 0;
+					if (clusterCol.size() > max)
+						max = clusterCol.size();
+					if (clusterRow.size() > max)
+						max = clusterRow.size();
+					if (rowValues.size() > max)
+						max = rowValues.size();
+					if (colValues.size() > max)
+						max = colValues.size();
+
+					for (int i = 0; i < max; i++) {
+						String crow = "", ccol = "", lrow = "", lcol = "";
+						if (i < clusterRow.size())
+							crow = clusterRow.get(i);
+						if (i < clusterCol.size())
+							ccol = clusterCol.get(i);
+						if (i < rowValues.size())
+							lrow = rowValues.get(i);
+						if (i < colValues.size())
+							lcol = colValues.get(i);
+
+						System.out.printf(
+								"\t\t%-10s >< %-10s | %-10s >< %-10s\n", crow,
+								ccol, lrow, lcol);
+					}
+
 					// Dest ID
-					writer.write("" + chained + ",");
+					writer.write("" + chd.getBiclusterId() + ",");
 					// Row and Column type and values for Source
 					writer.write(row.getName() + ",\"");
 					for (String val : row.getValues())
