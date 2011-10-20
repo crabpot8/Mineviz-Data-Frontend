@@ -1,11 +1,14 @@
 package me.turnerha.infovis.data;
 
+import java.util.ArrayList;
+
 // TODO verify link e.g check if the type exists in both target and destination
 public class Link {
 	private Integer targetBicluster;
 	private Integer destinationBicluster;
 	private int chaining_link_id;
 	private String type; // delete-able
+	private double coeff =  -1.0; // delete-able
 
 	protected Link(Integer targetBicluster, Integer destinationBicluster,
 			int chaining_link_id) {
@@ -45,6 +48,34 @@ public class Link {
 				&& (target.getCol().getName().equals(dest.getCol().getName())))
 			return true;
 		return false;
+	}
+
+	/**
+	 * Returns the jicard coeff for these two biclusters. Throws exception if
+	 * these are overlapped, not connected
+	 */
+	public double getCoeff() {
+		if (isOverlapLink())
+			throw new IllegalStateException("Coeff does not make sense on overlapped biclusters");
+		
+		if (coeff != -1.0)
+			return coeff;
+		
+		Bicluster target = getTarget();
+		Bicluster dest = getDestination();
+		
+		String link = getType();
+		ArrayList<String> tValues = target.getDimension(link).getValues();
+		ArrayList<String> dValues = dest.getDimension(link).getValues();
+		
+		double intersecton = 0;
+		for (String s : tValues)
+			if (dValues.contains(s))
+				intersecton++;
+		double union = tValues.size() + dValues.size() - intersecton;
+		
+		coeff = intersecton / union;
+		return coeff;
 	}
 
 	public boolean isConnectionLink() {

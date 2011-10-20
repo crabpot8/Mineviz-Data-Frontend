@@ -42,6 +42,14 @@ public class Bicluster {
 		return bicluster_id;
 	}
 
+	public Dimension getDimension(String type) {
+		if (getRow().getName().equals(type))
+			return getRow();
+		else if (getCol().getName().equals(type))
+			return getCol();
+		throw new IllegalArgumentException("Unknown type");
+	}
+
 	public List<Link> getAllLinks() {
 		if (links != null)
 			return links;
@@ -59,6 +67,10 @@ public class Bicluster {
 
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+		if (in.length() == 0) {
+			links = new ArrayList<Link>();
+			return links;
 		}
 		in.setLength(in.length() - 1);
 

@@ -60,8 +60,8 @@ public class DBtoCSV {
 						+ row.getName() + " <> " + col.getName());
 
 				for (Link link : cluster.getAllLinks()) {
-					//if (link.isOverlapLink())
-					//	continue;
+					if (link.isOverlapLink())
+						continue;
 
 					if (link.getTarget() != cluster)
 						System.err.println("WTF");
@@ -114,7 +114,7 @@ public class DBtoCSV {
 							lcol = colValues.get(i);
 
 						System.out.printf(
-								"\t\t%-10s >< %-10s | %-10s >< %-10s\n", crow,
+								"\t\t%-15s >< %-15s | %-15s >< %-15s\n", crow,
 								ccol, lrow, lcol);
 					}
 

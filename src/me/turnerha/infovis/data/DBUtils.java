@@ -10,11 +10,11 @@ import java.util.List;
 
 // TODO only allow most of these methods to be seen from Cache and Bicluster
 public class DBUtils {
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	private static String dbUrl = "jdbc:mysql://localhost/?user=root&password=";
 	private static Connection conn = null;
-	public static int MINING_ID = 2; // ID from symfony.mining that we care for
-	public static int CHAINING_ID = 2; // ID from symfony.chaining that we care
+	public static int MINING_ID = 4; // ID from symfony.mining that we care for
+	public static int CHAINING_ID = 3; // ID from symfony.chaining that we care
 										// for
 
 	private static void ensureConnection() {
@@ -76,8 +76,8 @@ public class DBUtils {
 			e.printStackTrace();
 		}
 
-		if (DEBUG)
-			System.err.println("Returning " + result);
+		//if (DEBUG)
+		//	System.err.println("Returning " + result);
 		return result;
 	}
 
@@ -95,8 +95,8 @@ public class DBUtils {
 			e.printStackTrace();
 		}
 
-		if (DEBUG)
-			System.err.println("Returning " + result);
+		//if (DEBUG)
+		//	System.err.println("Returning " + result);
 		return result;
 	}
 
