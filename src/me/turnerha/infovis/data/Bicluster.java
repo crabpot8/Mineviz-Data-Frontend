@@ -55,11 +55,9 @@ public class Bicluster {
 			return links;
 
 		// Grab all chaining_link_ids that target this bicluster
-		ResultSet rs = DBUtils
-				.executeQuery("SELECT id FROM symfony.chaining_link WHERE target_bicluster_id="
-						+ bicluster_id
-						+ " AND chaining_id="
-						+ DBUtils.CHAINING_ID);
+		ResultSet rs = DBUtils.executeQuery("SELECT id FROM " + DBUtils.SYMFONY
+				+ ".chaining_link WHERE target_bicluster_id=" + bicluster_id
+				+ " AND chaining_id=" + DBUtils.CHAINING_ID);
 		StringBuffer in = new StringBuffer();
 		try {
 			while (rs.next())
@@ -76,7 +74,9 @@ public class Bicluster {
 
 		// Get the destination_bicluster_ids for each of those chaining_link_ids
 		rs = DBUtils
-				.executeQuery("SELECT chaining_link_id, destination_bicluster_id FROM symfony.chaining_link_destination WHERE chaining_link_id IN ("
+				.executeQuery("SELECT chaining_link_id, destination_bicluster_id FROM "
+						+ DBUtils.SYMFONY
+						+ ".chaining_link_destination WHERE chaining_link_id IN ("
 						+ in.toString() + ")");
 
 		links = new ArrayList<Link>();
@@ -128,12 +128,11 @@ public class Bicluster {
 		if (mDimension != null)
 			return mDimension;
 
-		int config_id = DBUtils
-				.executeQueryForInt("SELECT config_id FROM symfony.mining_bi_cluster WHERE id="
-						+ bicluster_id);
-		ResultSet result = DBUtils
-				.executeQuery("SELECT * FROM symfony.project_config WHERE id="
-						+ config_id);
+		int config_id = DBUtils.executeQueryForInt("SELECT config_id FROM "
+				+ DBUtils.SYMFONY + ".mining_bi_cluster WHERE id="
+				+ bicluster_id);
+		ResultSet result = DBUtils.executeQuery("SELECT * FROM "
+				+ DBUtils.SYMFONY + ".project_config WHERE id=" + config_id);
 
 		mDimension = new Dimension[2];
 		try {
@@ -160,15 +159,14 @@ public class Bicluster {
 		// Grab mining ID, use that to get Project ID, use that to get external
 		// DB nameAndTable.
 		// TODO if I'm fixing MINING_ID in DBUtils, should I use that here?
-		int mining_id = DBUtils
-				.executeQueryForInt("SELECT mining_id FROM symfony.mining_bi_cluster WHERE id="
-						+ bicluster_id);
-		int project_id = DBUtils
-				.executeQueryForInt("SELECT project_id FROM symfony.mining WHERE id="
-						+ mining_id);
+		int mining_id = DBUtils.executeQueryForInt("SELECT mining_id FROM "
+				+ DBUtils.SYMFONY + ".mining_bi_cluster WHERE id="
+				+ bicluster_id);
+		int project_id = DBUtils.executeQueryForInt("SELECT project_id FROM "
+				+ DBUtils.SYMFONY + ".mining WHERE id=" + mining_id);
 		externalDbName = DBUtils
-				.executeQueryForString("SELECT external_database FROM symfony.project WHERE id="
-						+ project_id);
+				.executeQueryForString("SELECT external_database FROM "
+						+ DBUtils.SYMFONY + ".project WHERE id=" + project_id);
 		return externalDbName;
 	}
 }

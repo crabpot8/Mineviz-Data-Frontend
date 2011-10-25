@@ -8,7 +8,7 @@ public class Link {
 	private Integer destinationBicluster;
 	private int chaining_link_id;
 	private String type; // delete-able
-	private double coeff =  -1.0; // delete-able
+	private double coeff = -1.0; // delete-able
 
 	protected Link(Integer targetBicluster, Integer destinationBicluster,
 			int chaining_link_id) {
@@ -25,18 +25,22 @@ public class Link {
 		return Cache.getBicluster(destinationBicluster);
 	}
 
+	public int getLinkId() {
+		return chaining_link_id;
+	}
+
 	public String getType() {
 		if (type != null)
 			return type;
 
 		// Find Type ID
-		String query = "SELECT chaining_link_type_id FROM symfony.chaining_link c WHERE c.id="
-				+ chaining_link_id;
+		String query = "SELECT chaining_link_type_id FROM " + DBUtils.SYMFONY
+				+ ".chaining_link c WHERE c.id=" + chaining_link_id;
 		int typeId = DBUtils.executeQueryForInt(query);
 
 		// Find Type Name
-		String nameQuery = "SELECT name FROM symfony.chaining_link_type c WHERE c.id="
-				+ typeId;
+		String nameQuery = "SELECT name FROM " + DBUtils.SYMFONY
+				+ ".chaining_link_type c WHERE c.id=" + typeId;
 		type = DBUtils.executeQueryForString(nameQuery);
 		return type;
 	}
@@ -56,24 +60,25 @@ public class Link {
 	 */
 	public double getCoeff() {
 		if (isOverlapLink())
-			throw new IllegalStateException("Coeff does not make sense on overlapped biclusters");
-		
+			throw new IllegalStateException(
+					"Coeff does not make sense on overlapped biclusters");
+
 		if (coeff != -1.0)
 			return coeff;
-		
+
 		Bicluster target = getTarget();
 		Bicluster dest = getDestination();
-		
+
 		String link = getType();
 		ArrayList<String> tValues = target.getDimension(link).getValues();
 		ArrayList<String> dValues = dest.getDimension(link).getValues();
-		
+
 		double intersecton = 0;
 		for (String s : tValues)
 			if (dValues.contains(s))
 				intersecton++;
 		double union = tValues.size() + dValues.size() - intersecton;
-		
+
 		coeff = intersecton / union;
 		return coeff;
 	}

@@ -31,10 +31,10 @@ public class Dimension {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer("{nameAndTable=");
-		sb.append(nameAndTable).append(',').append("idField=").append(
-				idField).append(',').append("valueField=").append(
-				valueField).append(',').append("isRow=").append(isRow)
-				.append(',').append("values=").append(values).append('}');
+		sb.append(nameAndTable).append(',').append("idField=").append(idField)
+				.append(',').append("valueField=").append(valueField).append(
+						',').append("isRow=").append(isRow).append(',').append(
+						"values=").append(values).append('}');
 		return sb.toString();
 	}
 
@@ -48,8 +48,8 @@ public class Dimension {
 		String selection = isRow ? "row_id" : "col_id";
 
 		// Grab the row ID's of all our values from mining_bi_cluster_row
-		ResultSet rs = DBUtils.executeQuery("SELECT " + selection
-				+ " FROM symfony." + idTable + " WHERE bicluser_id="
+		ResultSet rs = DBUtils.executeQuery("SELECT " + selection + " FROM "
+				+ DBUtils.SYMFONY + "." + idTable + " WHERE bicluser_id="
 				+ parentBicluster);
 
 		StringBuffer idINlist = new StringBuffer();

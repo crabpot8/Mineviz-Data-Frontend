@@ -10,12 +10,15 @@ import java.util.List;
 
 // TODO only allow most of these methods to be seen from Cache and Bicluster
 public class DBUtils {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static String dbUrl = "jdbc:mysql://localhost/?user=root&password=";
 	private static Connection conn = null;
-	public static int MINING_ID = 4; // ID from symfony.mining that we care for
-	public static int CHAINING_ID = 3; // ID from symfony.chaining that we care
-										// for
+	public static final int MINING_ID = 2; // ID from symfony.mining that we
+											// care for
+	public static final int CHAINING_ID = 2; // ID from symfony.chaining that we
+												// care
+	// for
+	public static final String SYMFONY = "symfony_crescent";
 
 	private static void ensureConnection() {
 		try {
@@ -76,8 +79,8 @@ public class DBUtils {
 			e.printStackTrace();
 		}
 
-		//if (DEBUG)
-		//	System.err.println("Returning " + result);
+		// if (DEBUG)
+		// System.err.println("Returning " + result);
 		return result;
 	}
 
@@ -95,8 +98,8 @@ public class DBUtils {
 			e.printStackTrace();
 		}
 
-		//if (DEBUG)
-		//	System.err.println("Returning " + result);
+		// if (DEBUG)
+		// System.err.println("Returning " + result);
 		return result;
 	}
 
@@ -107,8 +110,8 @@ public class DBUtils {
 	// TODO have some offset parameters
 	// Pass -1 for no limit
 	protected static List<Bicluster> listBiclusters(int limit) {
-		String query = "SELECT id FROM symfony.mining_bi_cluster WHERE mining_id="
-				+ MINING_ID;
+		String query = "SELECT id FROM " + SYMFONY
+				+ ".mining_bi_cluster WHERE mining_id=" + MINING_ID;
 		if (limit != -1)
 			query += " LIMIT " + limit;
 		ResultSet rs = executeQuery(query);
