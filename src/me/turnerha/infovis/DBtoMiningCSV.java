@@ -11,7 +11,14 @@ import edu.uci.ics.jung.algorithms.importance.BetweennessCentrality;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
-public class ImportanceCalc {
+/**
+ * Spits out the mining.csv file, plus the ' Importance' column, which scales
+ * from [0..1] -- the max and min are always 0 and 1.
+ * 
+ * @author hamiltont
+ * 
+ */
+public class DBtoMiningCSV {
 
 	public static void main(String[] args) {
 		long start = System.currentTimeMillis();
@@ -53,7 +60,10 @@ public class ImportanceCalc {
 		final double max = Collections.max(v2) / scaleFactor;
 
 		try {
-			PrintWriter writer = new PrintWriter(new File("importance.csv"));
+			PrintWriter writer = new PrintWriter(new File("mining.csv"));
+			writer.println("BiCluster Id, Row Type, Array of Rows, "
+					+ "Column Type, Array of Columns, Importance");
+
 			for (Bicluster c : Bicluster.getAllBiclusters()) {
 				// ID
 				writer.print(c.getBiclusterId());
@@ -92,11 +102,12 @@ public class ImportanceCalc {
 			writer.flush();
 			writer.close();
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
-		//System.out.println("Creating graph took " + create);
-		//System.out.println("Solving and Storing graph took "
-		//		+ (System.currentTimeMillis() - start));
+		// System.out.println("Creating graph took " + create);
+		// System.out.println("Solving and Storing graph took "
+		// + (System.currentTimeMillis() - start));
 
 	}
 

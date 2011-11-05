@@ -1,3 +1,2 @@
-bin/*
-*.csv
-
+.DS_Store
+bin/
